@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Build a Cat Breed Lookup CLI with Python and TheCatAPI</title>
+</head>
+
+<body>
+    <main>
+        <article>
+            <h1>Build a Cat Breed Lookup CLI with Python and TheCatAPI</h1>
+
+          <p>
+    In this tutorial, you'll build a Python command-line interface (CLI)
+    application that retrieves cat breed information from TheCatAPI.
+</p>
+
+<p>
+    The application prompts users to enter a cat breed and retrieves its
+    origin, life span, temperament, and description. Users can perform
+    multiple searches without restarting the application.
+</p>
+
+<p>
+    Along the way, you'll learn how to authenticate REST API requests,
+    pass query parameters, parse JSON responses, and handle common
+    request failures.
+</p>
+
+<h2>Prerequisites</h2>
+
+<p>To follow this tutorial, you'll need:</p>
+
+<ul>
+    <li>Python 3 installed on your computer</li>
+    <li>An API key from TheCatAPI</li>
+    <li>Basic familiarity with Python and the command line</li>
+</ul>
+<h2>1. Set up the project</h2>
+
+<p>Create a new Python project and install the required dependencies:</p>
+
+<pre><code>pip install requests python-dotenv</code></pre>
+
+<p>The application uses two third-party packages:</p>
+
+<ul>
+    <li><code>requests</code> handles HTTP requests to TheCatAPI.</li>
+    <li><code>python-dotenv</code> loads configuration values from a <code>.env</code> file into the application's environment.</li>
+</ul>
+
+<p>
+    Storing the API key outside the source code prevents it from being exposed
+    when the application is published to a Git repository.
+</p>
+
+<h3>Configure the API key</h3>
+
+<p>Create a file named <code>.env</code> in your project directory.</p>
+
+<p>Add your API key using the following format:</p>
+
+<pre><code>CAT_API_KEY=your_api_key_here</code></pre>
+
+<p>
+    Replace <code>your_api_key_here</code> with your actual API key.
+</p>
+
+<h3>Protect the API key</h3>
+
+<p>
+    Create a <code>.gitignore</code> file in the project directory and add:
+</p>
+
+<pre><code>.env</code></pre>
+
+<p>
+    This instructs Git to ignore the <code>.env</code> file, preventing it
+    from being accidentally committed to the repository.
+</p>
+
+<p>
+    <strong>Important:</strong> If an API key has already been committed,
+    adding <code>.env</code> to <code>.gitignore</code> will not remove it
+    from Git history. The exposed key should be revoked or rotated.
+</p>
+
+<p>
+    For developers who clone your project, you can also provide an
+    <code>.env.example</code> file:
+</p>
+
+<pre><code>CAT_API_KEY=your_api_key_here</code></pre>
+
+<p>
+    Unlike <code>.env</code>, this example file can safely be committed
+    because it contains no credentials.
+</p>
+
+<h2>2. Load the API key</h2>
+
+<p>
+    Import <code>os</code> and <code>load_dotenv</code>, then load the
+    environment variables:
+</p>
+
+<pre><code>import os
+
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("CAT_API_KEY")</code></pre>
+
+<p>
+    <code>load_dotenv()</code> reads the values defined in the
+    <code>.env</code> file and makes them available as environment variables
+    for the running application.
+</p>
+
+<p>
+    <code>os.getenv("CAT_API_KEY")</code> retrieves the API key from the
+    environment and stores it in <code>api_key</code>.
+</p>
+<h2>3. Authenticate the request</h2>
+
+<p>
+    TheCatAPI accepts the API key through the <code>x-api-key</code>
+    request header. Create a dictionary containing the header:
+</p>
+
+<pre><code>headers = {
+    "x-api-key": api_key
+}</code></pre>
+
+<p>
+    Passing the API key in the request header allows TheCatAPI to
+    authenticate the request without including the credential in the URL.
+</p>
+          
+<h2>4. Prepare the API request</h2>
+
+<p>Prompt the user to enter a cat breed:</p>
+
+<pre><code>breed = input("Enter a cat breed: ")</code></pre>
+
+<p>Define the API endpoint and query parameter:</p>
+
+<pre><code>url = "https://api.thecatapi.com/v1/breeds/search"
+
+params = {
+    "q": breed
+}</code></pre>
+
+<p>
+    The <code>q</code> parameter contains the breed name entered by the user.
+    When the request is sent, <code>requests</code> encodes the parameters
+    into the URL query string.
+</p>
+
+<h2>5. Send the HTTP request</h2>
+
+<p>
+    Send a GET request to the API using the endpoint, authentication header,
+    and query parameters:
+</p>
+
+<pre><code>response = requests.get(
+    url,
+    headers=headers,
+    params=params,
+    timeout=10
+)</code></pre>
+
+<p>
+    The <code>headers</code> argument includes the API key created earlier,
+    while <code>params</code> supplies the breed search parameter.
+</p>
+
+<p>
+    Setting <code>timeout=10</code> prevents the application from waiting
+    indefinitely if the API does not respond.
+</p>
+<h2>6. Handle request failures</h2>
+
+<p>
+    Network problems, timeouts, and other connection errors can prevent the
+    application from receiving a response. Wrap the request in a
+    <code>try</code>/<code>except</code> block:
+</p>
+
+<pre><code>try:
+    response = requests.get(
+        url,
+        headers=headers,
+        params=params,
+        timeout=10
+    )
+except requests.exceptions.RequestException:
+    print("The API could not be reached. Please check your internet connection.")
+    continue</code></pre>
+
+<p>
+    <code>RequestException</code> catches errors that occur while attempting
+    to make the request. If the request fails, <code>continue</code> returns
+    the application to the beginning of the search loop.
+</p>
+
+
+<h2>7. Handle HTTP response errors</h2>
+
+<p>
+    A successful HTTP request does not necessarily mean the API returned a
+    successful response. Check the response status code before processing
+    the returned data:
+</p>
+
+<pre><code>if response.status_code == 200:
+    breed_info = response.json()
+else:
+    print(f"API request failed. Status code: {response.status_code}")</code></pre>
+
+<p>
+    The application processes the response body only when TheCatAPI returns
+    <code>200 OK</code>. Other status codes are reported to the user instead.
+</p>
+
+
+<h2>8. Parse the JSON response</h2>
+
+<p>
+    For a successful request, convert the JSON response into Python data:
+</p>
+
+<pre><code>breed_info = response.json()</code></pre>
+
+<p>
+    The breed search endpoint returns a JSON array. After parsing,
+    <code>breed_info</code> is a Python list containing dictionaries that
+    represent matching breeds.
+</p>
+
+
+<h2>9. Handle searches with no results</h2>
+
+<p>
+    Before accessing a result, verify that the API returned at least one
+    matching breed:
+</p>
+
+<pre><code>if breed_info:
+    cat = breed_info[0]
+else:
+    print(f"No matching breed found for '{breed}'.")</code></pre>
+
+<p>
+    Checking the list before accessing <code>breed_info[0]</code> prevents
+    an <code>IndexError</code> when the API returns an empty array.
+</p>
+
+<p>
+    When results are available, <code>breed_info[0]</code> selects the first
+    matching breed returned by the API.
+</p>
+
+
+<h2>10. Display the breed information</h2>
+
+<p>
+    Use the first returned breed to display the fields relevant to the user:
+</p>
+
+<pre><code>cat = breed_info[0]
+
+print(f"Name: {cat['name']}")
+print(f"Origin: {cat['origin']}")
+print(f"Life Span: {cat['life_span']} years")
+print(f"Temperament: {cat['temperament']}")
+print(f"Description: {cat['description']}")</code></pre>
+
+<p>
+    Each value is retrieved from the breed object using the corresponding
+    JSON property name returned by TheCatAPI.
+</p>
+
+
+<h2>11. Allow multiple searches</h2>
+
+<p>
+    Wrap the application in a loop so users can search for additional breeds
+    without restarting the program:
+</p>
+
+<pre><code>while True:
+    breed = input("Enter a cat breed: ")
+
+    # Send and process the API request.
+
+    while True:
+        search_again = input("Search for another breed? (y/n): ").strip().lower()
+
+        if search_again == "y" or search_again == "n":
+            break
+        else:
+            print("Please enter a valid input.")
+
+    if search_again == "n":
+        break</code></pre>
+
+<p>
+    The inner loop validates the user's response before allowing the
+    application to continue. Using <code>strip()</code> and
+    <code>lower()</code> normalizes the input so values such as
+    <code>Y</code> and <code> y </code> are accepted.
+</p>
+
+
+<h2>12. Complete application</h2>
+
+<p>
+    The complete application combines authentication, query parameters,
+    response handling, and repeated searches:
+</p>
+
+<pre><code>import os
+
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("CAT_API_KEY")
+
+headers = {
+    "x-api-key": api_key
+}
+
+while True:
+    breed = input("Enter a cat breed: ")
+
+    url = "https://api.thecatapi.com/v1/breeds/search"
+
+    params = {
+        "q": breed
+    }
+
+    try:
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            timeout=10
+        )
+    except requests.exceptions.RequestException:
+        print("The API could not be reached. Please check your internet connection.")
+        continue
+
+    if response.status_code == 200:
+        breed_info = response.json()
+
+        if breed_info:
+            cat = breed_info[0]
+
+            print(f"Name: {cat['name']}")
+            print(f"Origin: {cat['origin']}")
+            print(f"Life Span: {cat['life_span']} years")
+            print(f"Temperament: {cat['temperament']}")
+            print(f"Description: {cat['description']}")
+        else:
+            print(f"No matching breed found for '{breed}'.")
+    else:
+        print(f"API request failed. Status code: {response.status_code}")
+
+    while True:
+        search_again = input("Search for another breed? (y/n): ").strip().lower()
+
+        if search_again == "y" or search_again == "n":
+            break
+        else:
+            print("Please enter a valid input.")
+
+    if search_again == "n":
+        break</code></pre>
+
+
+<h2>Run the application</h2>
+
+<p>Run the application from the project directory:</p>
+
+<pre><code>python main.py</code></pre>
+
+<p>
+    Enter a breed name when prompted. After displaying the result, the
+    application asks whether you want to perform another search.
+</p>
+
+
+<h2>Project files</h2>
+
+<p>Your completed project should contain the following files:</p>
+
+<pre><code>cat-breed-lookup/
+├── .env
+├── .env.example
+├── .gitignore
+├── README.md
+├── main.py
+└── requirements.txt</code></pre>
+
+<p>
+    The <code>.env</code> file remains local and should not be committed to
+    the repository. The <code>.env.example</code> file documents the
+    configuration required to run the application without exposing a real
+    API key.
+</p>
+
+
+<h2>Conclusion</h2>
+
+<p>
+    You've built a Python CLI application that authenticates with TheCatAPI,
+    sends requests using query parameters, parses JSON responses, handles
+    request and response errors, and supports multiple searches in a single
+    session.
+</p>
+        </article>
+    </main>
+</body>
+
+</html>
