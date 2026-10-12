@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Build a Cat Breed Lookup CLI with Python and TheCatAPI</title>
     <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
 
 <body>
@@ -43,7 +45,7 @@
 
 <p>Create a new Python project and install the required dependencies:</p>
 
-<pre><code>pip install requests python-dotenv</code></pre>
+<pre><code class="language-python">pip install requests python-dotenv</code></pre>
 
 <p>The application uses two third-party packages:</p>
 
@@ -75,7 +77,7 @@
     Create a <code>.gitignore</code> file in the project directory and add:
 </p>
 
-<pre><code>.env</code></pre>
+<pre><code class="language-python">.env</code></pre>
 
 <p>
     This instructs Git to ignore the <code>.env</code> file, preventing it
@@ -93,7 +95,7 @@
     <code>.env.example</code> file:
 </p>
 
-<pre><code>CAT_API_KEY=your_api_key_here</code></pre>
+<pre><code class="language-python">CAT_API_KEY=your_api_key_here</code></pre>
 
 <p>
     Unlike <code>.env</code>, this example file can safely be committed
@@ -132,7 +134,7 @@ api_key = os.getenv("CAT_API_KEY")</code></pre>
     request header. Create a dictionary containing the header:
 </p>
 
-<pre><code>headers = {
+<pre><code class="language-python">headers = {
     "x-api-key": api_key
 }</code></pre>
 
@@ -145,11 +147,11 @@ api_key = os.getenv("CAT_API_KEY")</code></pre>
 
 <p>Prompt the user to enter a cat breed:</p>
 
-<pre><code>breed = input("Enter a cat breed: ")</code></pre>
+<pre><code class="language-python">breed = input("Enter a cat breed: ")</code></pre>
 
 <p>Define the API endpoint and query parameter:</p>
 
-<pre><code>url = "https://api.thecatapi.com/v1/breeds/search"
+<pre><code class="language-python">url = "https://api.thecatapi.com/v1/breeds/search"
 
 params = {
     "q": breed
@@ -168,7 +170,7 @@ params = {
     and query parameters:
 </p>
 
-<pre><code>response = requests.get(
+<pre><code class="language-python">response = requests.get(
     url,
     headers=headers,
     params=params,
@@ -192,7 +194,7 @@ params = {
     <code>try</code>/<code>except</code> block:
 </p>
 
-<pre><code>try:
+<pre><code class="language-python">try:
     response = requests.get(
         url,
         headers=headers,
@@ -218,7 +220,7 @@ except requests.exceptions.RequestException:
     the returned data:
 </p>
 
-<pre><code>if response.status_code == 200:
+<pre><code class="language-python">if response.status_code == 200:
     breed_info = response.json()
 else:
     print(f"API request failed. Status code: {response.status_code}")</code></pre>
@@ -235,7 +237,7 @@ else:
     For a successful request, convert the JSON response into Python data:
 </p>
 
-<pre><code>breed_info = response.json()</code></pre>
+<pre><code class="language-python">breed_info = response.json()</code></pre>
 
 <p>
     The breed search endpoint returns a JSON array. After parsing,
@@ -251,7 +253,7 @@ else:
     matching breed:
 </p>
 
-<pre><code>if breed_info:
+<pre><code class="language-python">if breed_info:
     cat = breed_info[0]
 else:
     print(f"No matching breed found for '{breed}'.")</code></pre>
@@ -273,7 +275,7 @@ else:
     Use the first returned breed to display the fields relevant to the user:
 </p>
 
-<pre><code>cat = breed_info[0]
+<pre><code class="language-python">cat = breed_info[0]
 
 print(f"Name: {cat['name']}")
 print(f"Origin: {cat['origin']}")
@@ -294,7 +296,7 @@ print(f"Description: {cat['description']}")</code></pre>
     without restarting the program:
 </p>
 
-<pre><code>while True:
+<pre><code class="language-python">while True:
     breed = input("Enter a cat breed: ")
 
     # Send and process the API request.
@@ -325,7 +327,7 @@ print(f"Description: {cat['description']}")</code></pre>
     response handling, and repeated searches:
 </p>
 
-<pre><code>import os
+<pre><code class="language-python">import os
 
 import requests
 from dotenv import load_dotenv
@@ -389,7 +391,7 @@ while True:
 
 <p>Run the application from the project directory:</p>
 
-<pre><code>python main.py</code></pre>
+<pre><code class="language-python">python main.py</code></pre>
 
 <p>
     Enter a breed name when prompted. After displaying the result, the
@@ -401,7 +403,7 @@ while True:
 
 <p>Your completed project should contain the following files:</p>
 
-<pre><code>cat-breed-lookup/
+<pre><code class="language-python">cat-breed-lookup/
 ├── .env
 ├── .env.example
 ├── .gitignore
@@ -427,6 +429,9 @@ while True:
 </p>
         </article>
     </main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 </body>
 
 </html>
